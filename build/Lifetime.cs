@@ -12,7 +12,7 @@ public class Lifetime : FrostingLifetime<Context>
         context.Target = context.Argument("target", "Default");
         context.Configuration = context.Argument("configuration", "Release");
         context.LinkSources = context.Argument("linkSources", false);
-        context.CoreOnly = context.Argument("CoreOnly", !context.IsRunningOnWindows());
+        context.FormatCode = context.Argument("formatCode", false);
 
         context.Artifacts = "./packaging/";
         context.CodeCoverage = "./coverage-results/";
@@ -21,26 +21,21 @@ public class Lifetime : FrostingLifetime<Context>
         var buildSystem = context.BuildSystem();
         context.IsLocalBuild = buildSystem.IsLocalBuild;
 
-        if (context.CoreOnly && !context.IsLocalBuild)
-        {
-            context.Warning("CoreOnly was specified on a non-local build. Artifacts may be versioned incorrectly!");
-        }
-
+        context.GitHubActions = buildSystem.GitHubActions.IsRunningOnGitHubActions;
         context.AppVeyor = buildSystem.AppVeyor.IsRunningOnAppVeyor;
-        context.TravisCI = buildSystem.TravisCI.IsRunningOnTravisCI;
         context.IsTagged = IsBuildTagged(buildSystem);
 
         if (context.AppVeyor)
         {
             context.IsPullRequest = buildSystem.AppVeyor.Environment.PullRequest.IsPullRequest;
             context.IsOriginalRepo = StringComparer.OrdinalIgnoreCase.Equals("octokit/octokit.net", buildSystem.AppVeyor.Environment.Repository.Name);
-            context.IsMasterBranch = StringComparer.OrdinalIgnoreCase.Equals("master", buildSystem.AppVeyor.Environment.Repository.Branch);
+            context.IsMainBranch = StringComparer.OrdinalIgnoreCase.Equals("main", buildSystem.AppVeyor.Environment.Repository.Branch);
         }
-        else if (context.TravisCI)
+        else if (context.GitHubActions)
         {
-            context.IsPullRequest = !string.IsNullOrEmpty(buildSystem.TravisCI.Environment.Repository.PullRequest);
-            context.IsOriginalRepo = StringComparer.OrdinalIgnoreCase.Equals("octokit/octokit.net", buildSystem.TravisCI.Environment.Repository.Slug);
-            context.IsMasterBranch = StringComparer.OrdinalIgnoreCase.Equals("master", buildSystem.TravisCI.Environment.Build.Branch);
+            context.IsPullRequest = buildSystem.GitHubActions.Environment.PullRequest.IsPullRequest;
+            context.IsOriginalRepo = StringComparer.OrdinalIgnoreCase.Equals("octokit/octokit.net", buildSystem.GitHubActions.Environment.Workflow.Repository);
+            context.IsMainBranch = StringComparer.OrdinalIgnoreCase.Equals("main", buildSystem.GitHubActions.Environment.Workflow.Ref);
         }
 
         // Force publish?
@@ -56,8 +51,7 @@ public class Lifetime : FrostingLifetime<Context>
             new Project { Name = "Octokit.Tests.Integration", Path = "./Octokit.Tests.Integration/Octokit.Tests.Integration.csproj", IntegrationTests = true }
         };
 
-        context.DotNetFormatToolPath = ToolInstaller.DotNetCoreToolInstall(context, "dotnet-format", "3.1.37601", "dotnet-format");
-        context.GitVersionToolPath = ToolInstaller.DotNetCoreToolInstall(context, "GitVersion.Tool", "5.0.0", "dotnet-gitversion");
+        context.GitVersionToolPath = ToolInstaller.DotNetCoreToolInstall(context, "GitVersion.Tool", "5.1.3", "dotnet-gitversion");
 
         // Calculate semantic version.
         context.Version = BuildVersion.Calculate(context);
@@ -68,10 +62,9 @@ public class Lifetime : FrostingLifetime<Context>
         context.Information("Version suffix: {0}", context.Version.Suffix);
         context.Information("Configuration:  {0}", context.Configuration);
         context.Information("LinkSources:    {0}", context.LinkSources);
-        context.Information("CoreOnly:       {0}", context.CoreOnly);
         context.Information("Target:         {0}", context.Target);
         context.Information("AppVeyor:       {0}", context.AppVeyor);
-        context.Information("TravisCI:       {0}", context.TravisCI);
+        context.Information("GitHub Actions: {0}", context.GitHubActions);
     }
 
     private static bool IsBuildTagged(BuildSystem buildSystem)

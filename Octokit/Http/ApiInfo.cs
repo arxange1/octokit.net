@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 namespace Octokit
 {
     /// <summary>
-    /// Extra information returned as part of each api response.
+    /// Extra information returned as part of each API response.
     /// </summary>
     public class ApiInfo
     {
@@ -13,7 +13,8 @@ namespace Octokit
             IList<string> oauthScopes,
             IList<string> acceptedOauthScopes,
             string etag,
-            RateLimit rateLimit)
+            RateLimit rateLimit,
+            TimeSpan serverTimeDifference = default)
         {
             Ensure.ArgumentNotNull(links, nameof(links));
             Ensure.ArgumentNotNull(oauthScopes, nameof(oauthScopes));
@@ -24,6 +25,7 @@ namespace Octokit
             AcceptedOauthScopes = new ReadOnlyCollection<string>(acceptedOauthScopes);
             Etag = etag;
             RateLimit = rateLimit;
+            ServerTimeDifference = serverTimeDifference;
         }
 
         /// <summary>
@@ -52,6 +54,17 @@ namespace Octokit
         public RateLimit RateLimit { get; private set; }
 
         /// <summary>
+        /// The best-effort time difference between the server and the client.
+        /// </summary>
+        /// <remarks>
+        /// If both the server and the client have reasonably accurate clocks,
+        /// the value of this property will be close to <see cref="TimeSpan.Zero"/>.
+        /// The actual value is sensitive to network transmission and processing 
+        /// delays.
+        /// </remarks>
+        public TimeSpan ServerTimeDifference { get; }
+
+        /// <summary>
         /// Allows you to clone ApiInfo 
         /// </summary>
         /// <returns>A clone of <seealso cref="ApiInfo"/></returns>
@@ -61,7 +74,8 @@ namespace Octokit
                                OauthScopes.Clone(),
                                AcceptedOauthScopes.Clone(),
                                Etag != null ? new string(Etag.ToCharArray()) : null,
-                               RateLimit != null ? RateLimit.Clone() : null);
+                               RateLimit != null ? RateLimit.Clone() : null,
+                               ServerTimeDifference);
         }
     }
 }

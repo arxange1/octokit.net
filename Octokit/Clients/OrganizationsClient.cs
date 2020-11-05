@@ -20,6 +20,7 @@ namespace Octokit
         {
             Member = new OrganizationMembersClient(apiConnection);
             Team = new TeamsClient(apiConnection);
+            Hook = new OrganizationHooksClient(apiConnection);
             OutsideCollaborator = new OrganizationOutsideCollaboratorsClient(apiConnection);
         }
 
@@ -44,6 +45,7 @@ namespace Octokit
         /// <param name="org">login of the organization to get</param>
         /// <exception cref="ApiException">Thrown when a general API error occurs.</exception>
         /// <returns>The specified <see cref="Organization"/>.</returns>
+        [ManualRoute("GET", "/orgs/{org}")]
         public Task<Organization> Get(string org)
         {
             Ensure.ArgumentNotNullOrEmptyString(org, nameof(org));
@@ -52,10 +54,17 @@ namespace Octokit
         }
 
         /// <summary>
+        /// A client for GitHub's Organization Hooks API.
+        /// </summary>
+        /// <remarks>See <a href="https://developer.github.com/v3/orgs/hooks/">Hooks API documentation</a> for more information.</remarks>
+        public IOrganizationHooksClient Hook { get; private set; }
+
+        /// <summary>
         /// Returns all <see cref="Organization" />s for the current user.
         /// </summary>
         /// <exception cref="ApiException">Thrown when a general API error occurs.</exception>
         /// <returns>A list of the current user's <see cref="Organization"/>s.</returns>
+        [ManualRoute("GET", "/user/orgs")]
         public Task<IReadOnlyList<Organization>> GetAllForCurrent()
         {
             return GetAllForCurrent(ApiOptions.None);
@@ -67,6 +76,7 @@ namespace Octokit
         /// <param name="options">Options for changing the API response</param>
         /// <exception cref="ApiException">Thrown when a general API error occurs.</exception>
         /// <returns>A list of the current user's <see cref="Organization"/>s.</returns>
+        [ManualRoute("GET", "/user/orgs")]
         public Task<IReadOnlyList<Organization>> GetAllForCurrent(ApiOptions options)
         {
             Ensure.ArgumentNotNull(options, nameof(options));
@@ -80,6 +90,7 @@ namespace Octokit
         /// <param name="user">The login of the user</param>
         /// <exception cref="ApiException">Thrown when a general API error occurs.</exception>
         /// <returns>A list of the specified user's <see cref="Organization"/>s.</returns>
+        [ManualRoute("GET", "/users/{username}/orgs")]
         public Task<IReadOnlyList<Organization>> GetAllForUser(string user)
         {
             Ensure.ArgumentNotNullOrEmptyString(user, nameof(user));
@@ -94,6 +105,7 @@ namespace Octokit
         /// <param name="options">Options for changing the API response</param>
         /// <exception cref="ApiException">Thrown when a general API error occurs.</exception>
         /// <returns>A list of the specified user's <see cref="Organization"/>s.</returns>
+        [ManualRoute("GET", "/users/{username}/orgs")]
         public Task<IReadOnlyList<Organization>> GetAllForUser(string user, ApiOptions options)
         {
             Ensure.ArgumentNotNullOrEmptyString(user, nameof(user));
@@ -108,6 +120,7 @@ namespace Octokit
         /// </summary>
         /// <exception cref="ApiException">Thrown when a general API error occurs.</exception>
         /// <returns>A list of <see cref="Organization"/>s.</returns>
+        [ManualRoute("GET", "/organizations")]
         public Task<IReadOnlyList<Organization>> GetAll()
         {
             return ApiConnection.GetAll<Organization>(ApiUrls.AllOrganizations());
@@ -119,6 +132,7 @@ namespace Octokit
         /// <param name="request">Search parameters of the last organization seen</param>
         /// <exception cref="ApiException">Thrown when a general API error occurs.</exception>
         /// <returns>A list of <see cref="Organization"/>s.</returns>
+        [ManualRoute("GET", "/organizations")]
         public Task<IReadOnlyList<Organization>> GetAll(OrganizationRequest request)
         {
             Ensure.ArgumentNotNull(request, nameof(request));
@@ -131,16 +145,17 @@ namespace Octokit
         /// <summary>
         /// Update the specified organization with data from <see cref="OrganizationUpdate"/>.
         /// </summary>
-        /// <param name="organizationName">The name of the organization to update.</param>
+        /// <param name="org">The name of the organization to update.</param>
         /// <param name="updateRequest"></param>
         /// <exception cref="AuthorizationException">Thrown if the client is not authenticated.</exception>
         /// <returns>A <see cref="Organization"/></returns>
-        public Task<Organization> Update(string organizationName, OrganizationUpdate updateRequest)
+        [ManualRoute("PATCH", "/orgs/{org}")]
+        public Task<Organization> Update(string org, OrganizationUpdate updateRequest)
         {
-            Ensure.ArgumentNotNullOrEmptyString(organizationName, nameof(organizationName));
+            Ensure.ArgumentNotNullOrEmptyString(org, nameof(org));
             Ensure.ArgumentNotNull(updateRequest, nameof(updateRequest));
 
-            var updateUri = new Uri("orgs/" + organizationName, UriKind.Relative);
+            var updateUri = new Uri("orgs/" + org, UriKind.Relative);
 
             return ApiConnection.Patch<Organization>(updateUri, updateRequest);
         }

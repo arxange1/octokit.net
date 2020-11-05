@@ -14,7 +14,7 @@ namespace Octokit
             Id = id;
         }
 
-        public Repository(string url, string htmlUrl, string cloneUrl, string gitUrl, string sshUrl, string svnUrl, string mirrorUrl, long id, string nodeId, User owner, string name, string fullName, string description, string homepage, string language, bool @private, bool fork, int forksCount, int stargazersCount, string defaultBranch, int openIssuesCount, DateTimeOffset? pushedAt, DateTimeOffset createdAt, DateTimeOffset updatedAt, RepositoryPermissions permissions, Repository parent, Repository source, LicenseMetadata license, bool hasIssues, bool hasWiki, bool hasDownloads, bool hasPages, int subscribersCount, long size, bool? allowRebaseMerge, bool? allowSquashMerge, bool? allowMergeCommit, bool archived)
+        public Repository(string url, string htmlUrl, string cloneUrl, string gitUrl, string sshUrl, string svnUrl, string mirrorUrl, long id, string nodeId, User owner, string name, string fullName, bool isTemplate, string description, string homepage, string language, bool @private, bool fork, int forksCount, int stargazersCount, string defaultBranch, int openIssuesCount, DateTimeOffset? pushedAt, DateTimeOffset createdAt, DateTimeOffset updatedAt, RepositoryPermissions permissions, Repository parent, Repository source, LicenseMetadata license, bool hasIssues, bool hasWiki, bool hasDownloads, bool hasPages, int subscribersCount, long size, bool? allowRebaseMerge, bool? allowSquashMerge, bool? allowMergeCommit, bool archived, int watchersCount)
         {
             Url = url;
             HtmlUrl = htmlUrl;
@@ -28,6 +28,7 @@ namespace Octokit
             Owner = owner;
             Name = name;
             FullName = fullName;
+            IsTemplate = isTemplate;
             Description = description;
             Homepage = homepage;
             Language = language;
@@ -54,6 +55,7 @@ namespace Octokit
             AllowSquashMerge = allowSquashMerge;
             AllowMergeCommit = allowMergeCommit;
             Archived = archived;
+            WatchersCount = watchersCount;
         }
 
         public string Url { get; protected set; }
@@ -83,6 +85,8 @@ namespace Octokit
 
         public string FullName { get; protected set; }
 
+        public bool IsTemplate { get; protected set; }
+
         public string Description { get; protected set; }
 
         public string Homepage { get; protected set; }
@@ -96,6 +100,8 @@ namespace Octokit
         public int ForksCount { get; protected set; }
 
         public int StargazersCount { get; protected set; }
+
+        public int WatchersCount { get; protected set; }
 
         public string DefaultBranch { get; protected set; }
 
@@ -129,6 +135,7 @@ namespace Octokit
 
         public bool HasPages { get; protected set; }
 
+        [Obsolete("Update your code to use WatchersCount as this field will stop containing data in the future")]
         public int SubscribersCount { get; protected set; }
 
         public long Size { get; protected set; }
